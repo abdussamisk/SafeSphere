@@ -11,6 +11,10 @@ import com.example.safesphere.Authy.API.ApiService
 import com.example.safesphere.Authy.API.LoginRequest
 import com.example.safesphere.Authy.API.SignupRequest
 import com.example.safesphere.Authy.TokenRepository.UserRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -31,6 +35,7 @@ class SigninViewModel: ViewModel() {
     var password= TextFieldState("")
     var name= TextFieldState("")
     var errorScreen by mutableStateOf(false)
+    var isSignedUp by mutableStateOf(false)
 
     fun userSignup(context: Context) {
         viewModelScope.launch {
@@ -52,6 +57,7 @@ class SigninViewModel: ViewModel() {
                     username=resBody?.name ?: "nothing",
                     phoneNumber=resBody?.phone_no ?: "nothing"
                 )
+                isSignedUp=true
             }
             else {
                 errorScreen=true
@@ -64,6 +70,7 @@ class LoginViewModel: ViewModel() {
     var phoneno =TextFieldState("")
     var password =TextFieldState("")
     var errorScreen by mutableStateOf(false)
+    var isLoggedIn by mutableStateOf(false)
 
     fun userLogin(context: Context) {
         viewModelScope.launch {
@@ -84,6 +91,7 @@ class LoginViewModel: ViewModel() {
                     username=resBody?.name ?: "nothing",
                     phoneNumber=resBody?.phone_no ?: "nothing"
                 )
+                isLoggedIn=true
             }
             else {
                 errorScreen=true

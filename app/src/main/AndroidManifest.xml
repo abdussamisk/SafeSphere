@@ -50,13 +50,13 @@
             android:value="${MAPS_API_KEY}" />
 
         <!-- Emergency Voice Listening -->
-        <service
+        <!-- <service
             android:name=".EmergencyListeningService"
             android:foregroundServiceType="microphone"
-            android:exported="false" />
+            android:exported="false" /> -->
 
         <!-- Fake Call Accessibility Service -->
-        <service
+        <!--<service
             android:name=".VolumeButtonService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="false">
@@ -68,7 +68,7 @@
             <meta-data
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config"/>
-        </service>
+        </service> -->
 
         <!-- Main Activity -->
         <activity

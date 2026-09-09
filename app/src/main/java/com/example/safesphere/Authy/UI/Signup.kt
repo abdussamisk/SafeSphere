@@ -28,6 +28,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.safesphere.Authy.UI.ViewModel.SigninViewModel
 import com.example.safesphere.ui.theme.SafeSphereTheme
 import com.example.safesphere.ui.theme.AccentDeep
@@ -61,8 +63,18 @@ import com.example.safesphere.ui.theme.TextSecondary
 
 @Composable
 fun SignUp(
-    viewModel: SigninViewModel =viewModel()
+    viewModel: SigninViewModel =viewModel(),
+    navController: NavController
 ) {
+    if (viewModel.isSignedUp) {
+        LaunchedEffect(Unit) {
+            navController.navigate("home") {
+                popUpTo("signup") {
+                    inclusive = true
+                }
+            }
+        }
+    }
     Scaffold(containerColor = Cream) { padding ->
         Column(
             modifier = Modifier
@@ -261,10 +273,10 @@ private fun SignUpAuthTextField(
     }
 }
 
-@Preview(showBackground = true, widthDp = 390, heightDp = 844)
+/*@Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
 private fun SignUpScreenPreview() {
     SafeSphereTheme {
         SignUp()
     }
-}
+}*/

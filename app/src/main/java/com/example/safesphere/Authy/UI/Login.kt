@@ -26,6 +26,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.safesphere.Authy.UI.ViewModel.LoginViewModel
 import com.example.safesphere.ui.theme.AccentDeep
 import com.example.safesphere.ui.theme.AccentSoft
@@ -58,9 +60,20 @@ import com.example.safesphere.ui.theme.TextSecondary
 
 @Composable
 fun Login(
-    viewModel: LoginViewModel=viewModel()
+    viewModel: LoginViewModel=viewModel(),
+    navController: NavController
 ) {
     val context= LocalContext.current
+    if (viewModel.isLoggedIn) {
+
+        LaunchedEffect(Unit) {
+            navController.navigate("home") {
+                popUpTo("login") {
+                    inclusive = true
+                }
+            }
+        }
+    }
     Scaffold(containerColor = Cream) { padding ->
         Column(
             modifier = Modifier
@@ -293,10 +306,10 @@ private fun LoginGoogleButton(onClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true, widthDp = 390, heightDp = 844)
+/*@Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
 private fun LoginScreenPreview() {
     SafeSphereTheme {
         Login()
     }
-}
+}*/
