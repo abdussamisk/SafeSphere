@@ -137,7 +137,7 @@ fun HomeNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = "settings"
+        startDestination = "main_tabs"
     ) {
         composable("main_tabs") {
             Scaffold(
