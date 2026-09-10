@@ -26,6 +26,7 @@ import com.example.safesphere.Authy.UI.SignUp
 import com.example.safesphere.Authy.UI.ViewModel.AuthViewModel
 import com.example.safesphere.Authy.UI.ViewModel.AuthViewModelFactory
 import com.example.safesphere.Authy.UI.Welcome
+import com.example.safesphere.Evidence.UI.SafeSphereApp
 import com.example.safesphere.Home.UI.Home
 import com.example.safesphere.SafetyMap.UI.Map
 import com.example.safesphere.ui.theme.SafeSphereTheme
@@ -107,8 +108,12 @@ fun HomeNavigation() {
 
     NavHost(
         navController=navController,
-        startDestination="map"
+        startDestination="evidence"
     ) {
+        composable("evidence") {
+            SafeSphereApp()
+        }
+
         composable("home") {
             Home()
         }

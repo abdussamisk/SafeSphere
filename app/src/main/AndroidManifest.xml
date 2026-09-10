@@ -50,10 +50,10 @@
             android:value="${MAPS_API_KEY}" />
 
         <!-- Emergency Voice Listening -->
-        <!-- <service
-            android:name=".EmergencyListeningService"
+        <service
+            android:name=".Evidence.Service.EmergencyListeningService"
             android:foregroundServiceType="microphone"
-            android:exported="false" /> -->
+            android:exported="false" />
 
         <!-- Fake Call Accessibility Service -->
         <service

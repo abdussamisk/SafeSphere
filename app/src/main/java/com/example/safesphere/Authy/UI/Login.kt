@@ -48,6 +48,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import com.example.safesphere.R
 import com.example.safesphere.Authy.UI.ViewModel.LoginViewModel
 import com.example.safesphere.ui.theme.AccentDeep
 import com.example.safesphere.ui.theme.AccentSoft
@@ -57,6 +62,7 @@ import com.example.safesphere.ui.theme.SafeSphereTheme
 import com.example.safesphere.ui.theme.TextMuted
 import com.example.safesphere.ui.theme.TextPrimary
 import com.example.safesphere.ui.theme.TextSecondary
+
 
 @Composable
 fun Login(
@@ -163,7 +169,7 @@ fun Login(
                         ),
                 )*/
 
-                /*Row(
+                Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -179,9 +185,13 @@ fun Login(
                         modifier = Modifier.padding(horizontal = 12.dp),
                     )
                     Divider(modifier = Modifier.weight(1f), color = Border)
-                }*/
+                }
 
-                /*Row(modifier = Modifier.padding(top = 20.dp)) {
+                LoginGoogleButton(
+                    onClick = { viewModel.performGoogleSignIn(context) }
+                )
+
+                Row(modifier = Modifier.padding(top = 20.dp)) {
                     Text(text = "Don't have an account? ", color = TextSecondary, fontSize = 14.sp)
                     Text(
                         text = "Sign up",
@@ -191,11 +201,12 @@ fun Login(
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = onNavigateToSignUp,
+                            onClick = { navController.navigate("signup") },
                         ),
                     )
-                }*/
+                }
             }
+
         }
     }
 }
@@ -281,8 +292,8 @@ private fun LoginAuthTextField(
 }
 
 /**
- * Single full-width "Continue with Google" button. Swap the "G" text for your actual
- * multi-color Google logo drawable (res/drawable/ic_google.xml) for pixel-perfect branding.
+
+ * Single full-width "Continue with Google" button with official multi-color Google G logo.
  */
 @Composable
 private fun LoginGoogleButton(onClick: () -> Unit) {
@@ -295,16 +306,17 @@ private fun LoginGoogleButton(onClick: () -> Unit) {
         colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
         border = BorderStroke(1.dp, Border),
     ) {
-        Text(
-            "G",
-            color = Color(0xFF4285F4),
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-            modifier = Modifier.padding(end = 10.dp),
+        Icon(
+            painter = painterResource(id = R.drawable.ic_google),
+            contentDescription = "Google Logo",
+            tint = Color.Unspecified,
+            modifier = Modifier.size(22.dp)
         )
-        Text("Google", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+        Spacer(modifier = Modifier.width(10.dp))
+        Text("Continue with Google", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
     }
 }
+
 
 /*@Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable

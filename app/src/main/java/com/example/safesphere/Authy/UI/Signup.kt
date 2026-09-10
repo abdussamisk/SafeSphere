@@ -51,6 +51,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import com.example.safesphere.R
 import com.example.safesphere.Authy.UI.ViewModel.SigninViewModel
 import com.example.safesphere.ui.theme.SafeSphereTheme
 import com.example.safesphere.ui.theme.AccentDeep
@@ -60,6 +65,7 @@ import com.example.safesphere.ui.theme.Cream
 import com.example.safesphere.ui.theme.TextMuted
 import com.example.safesphere.ui.theme.TextPrimary
 import com.example.safesphere.ui.theme.TextSecondary
+
 
 @Composable
 fun SignUp(
@@ -174,7 +180,11 @@ fun SignUp(
                     Divider(modifier = Modifier.weight(1f), color = Border)
                 }
 
-                /*Row(modifier = Modifier.padding(top = 20.dp)) {
+                SignUpGoogleButton(
+                    onClick = { viewModel.performGoogleSignIn(context) }
+                )
+
+                Row(modifier = Modifier.padding(top = 20.dp)) {
                     Text(text = "Already have an account? ", color = TextSecondary, fontSize = 14.sp)
                     Text(
                         text = "Log in",
@@ -184,11 +194,12 @@ fun SignUp(
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = onNavigateToLogin,
+                            onClick = { navController.navigate("login") },
                         ),
                     )
-                }*/
+                }
             }
+
         }
     }
 }
@@ -272,6 +283,33 @@ private fun SignUpAuthTextField(
         )
     }
 }
+
+/**
+ * Single full-width "Sign up with Google" button with official multi-color Google G logo.
+ */
+@Composable
+private fun SignUpGoogleButton(onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        shape = RoundedCornerShape(26.dp),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
+        border = BorderStroke(1.dp, Border),
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_google),
+            contentDescription = "Google Logo",
+            tint = Color.Unspecified,
+            modifier = Modifier.size(22.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Text("Sign up with Google", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+    }
+}
+
+
 
 /*@Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable

@@ -11,6 +11,7 @@ import com.example.safesphere.Authy.API.ApiService
 import com.example.safesphere.Authy.API.LoginRequest
 import com.example.safesphere.Authy.API.SignupRequest
 import com.example.safesphere.Authy.TokenRepository.UserRepository
+import com.example.safesphere.Authy.GoogleAuthHelper
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -36,6 +37,7 @@ class SigninViewModel: ViewModel() {
     var name= TextFieldState("")
     var errorScreen by mutableStateOf(false)
     var isSignedUp by mutableStateOf(false)
+    var isLoading by mutableStateOf(false)
 
     fun userSignup(context: Context) {
         viewModelScope.launch {
@@ -64,6 +66,27 @@ class SigninViewModel: ViewModel() {
             }
         }
     }
+
+    fun performGoogleSignIn(context: Context) {
+        viewModelScope.launch {
+            isLoading = true
+            val result = GoogleAuthHelper.signInWithGoogle(context)
+            isLoading = false
+
+            result.onSuccess { googleUser ->
+                val userPreferences = UserRepository(context)
+                userPreferences.saveUserData(
+                    accessToken = googleUser.idToken,
+                    refreshToken = "google_auth",
+                    username = googleUser.displayName ?: googleUser.email,
+                    phoneNumber = googleUser.email
+                )
+                isSignedUp = true
+            }.onFailure {
+                errorScreen = true
+            }
+        }
+    }
 }
 
 class LoginViewModel: ViewModel() {
@@ -71,6 +94,7 @@ class LoginViewModel: ViewModel() {
     var password =TextFieldState("")
     var errorScreen by mutableStateOf(false)
     var isLoggedIn by mutableStateOf(false)
+    var isLoading by mutableStateOf(false)
 
     fun userLogin(context: Context) {
         viewModelScope.launch {
@@ -98,4 +122,25 @@ class LoginViewModel: ViewModel() {
             }
         }
     }
-}
+
+    fun performGoogleSignIn(context: Context) {
+        viewModelScope.launch {
+            isLoading = true
+            val result = GoogleAuthHelper.signInWithGoogle(context)
+            isLoading = false
+
+            result.onSuccess { googleUser ->
+                val userPreferences = UserRepository(context)
+                userPreferences.saveUserData(
+                    accessToken = googleUser.idToken,
+                    refreshToken = "google_auth",
+                    username = googleUser.displayName ?: googleUser.email,
+                    phoneNumber = googleUser.email
+                )
+                isLoggedIn = true
+            }.onFailure {
+                errorScreen = true
+            }
+        }
+    }
+}
