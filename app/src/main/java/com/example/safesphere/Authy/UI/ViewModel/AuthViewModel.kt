@@ -13,7 +13,7 @@ class AuthViewModel(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    val isLoggedIn: StateFlow<Boolean> =
+    val isLoggedIn: StateFlow<Boolean?> =
         userRepository.accessToken
             .map { token ->
                 token != null
@@ -21,6 +21,6 @@ class AuthViewModel(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = false
+                initialValue = null
             )
 }

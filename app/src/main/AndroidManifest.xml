@@ -56,8 +56,8 @@
             android:exported="false" /> -->
 
         <!-- Fake Call Accessibility Service -->
-        <!--<service
-            android:name=".VolumeButtonService"
+        <service
+            android:name=".FakeCall.VolumeButtonService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="false">
 
@@ -68,7 +68,7 @@
             <meta-data
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config"/>
-        </service> -->
+        </service>
 
         <!-- Main Activity -->
         <activity

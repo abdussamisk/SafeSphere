@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.safesphere.Authy.UI.Loading
 import com.example.safesphere.Authy.UI.Login
 import com.example.safesphere.Authy.UI.SignUp
 import com.example.safesphere.Authy.UI.ViewModel.AuthViewModel
@@ -51,11 +52,19 @@ fun App() {
 
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
-    if (isLoggedIn) {
-        HomeNavigation()
-    }
-    else {
-        AuthNavigation()
+    when (isLoggedIn) {
+
+        null -> {
+            Loading()
+        }
+
+        true -> {
+            HomeNavigation()
+        }
+
+        false -> {
+            AuthNavigation()
+        }
     }
 }
 
@@ -106,6 +115,10 @@ fun HomeNavigation() {
 
         composable("map") {
             Map()
+        }
+
+        composable("settings") {
+            //Call Settings
         }
     }
 }
