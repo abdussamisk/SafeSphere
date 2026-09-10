@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 
 class AuthViewModel(
@@ -23,4 +24,10 @@ class AuthViewModel(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = null
             )
+
+    fun logout() {
+        viewModelScope.launch {
+            userRepository.clearUserData()
+        }
+    }
 }

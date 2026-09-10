@@ -35,6 +35,15 @@ class UserRepository(private val context: Context) {
         }
     }
 
+    suspend fun clearUserData() {
+        dataStore.edit { preferences ->
+            preferences.remove(ACCESS_TOKEN)
+            preferences.remove(REFRESH_TOKEN)
+            preferences.remove(USERNAME)
+            preferences.remove(PHONE_NUMBER)
+        }
+    }
+
     val accessToken: Flow<String?> =
         dataStore.data.map { it[ACCESS_TOKEN] }
 

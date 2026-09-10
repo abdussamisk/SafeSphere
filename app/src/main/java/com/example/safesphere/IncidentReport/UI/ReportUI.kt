@@ -26,10 +26,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.safesphere.IncidentReport.ViewModels.ReportViewModel
 
 object SafeSphereColors {
-    val Background = Color(0xFFF5F3EE)   // warm cream app background
-    val Surface = Color(0xFFFFFFFF)      // white input fields / cards
-    val Charcoal = Color(0xFF2B2925)     // primary buttons ("Get started", "Save entry")
-    val Forest = Color(0xFF2C4A3B)       // secondary accent (auth screens, avatars)
+    val Background = Color(0xFFF5F3EE)
+    val Surface = Color(0xFFFFFFFF)
+    val Charcoal = Color(0xFF2B2925)
+    val Forest = Color(0xFF2C4A3B)
     val TextPrimary = Color(0xFF221F1C)
     val TextSecondary = Color(0xFF8C8880)
     val Border = Color(0xFFE7E3DB)

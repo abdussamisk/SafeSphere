@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.safesphere.Authy.TokenRepository.UserRepository
 import com.example.safesphere.Authy.UI.Loading
 import com.example.safesphere.Authy.UI.Login
 import com.example.safesphere.Authy.UI.SignUp
@@ -47,6 +48,7 @@ import com.example.safesphere.Evidence.UI.EvidenceVaultScreen
 import com.example.safesphere.Home.UI.Home
 import com.example.safesphere.IncidentReport.UI.ReportUI
 import com.example.safesphere.SafetyMap.UI.Map
+import com.example.safesphere.Settings.UI.Setting
 import com.example.safesphere.ui.theme.SafeSphereTheme
 
 class MainActivity : ComponentActivity() {
@@ -135,7 +137,7 @@ fun HomeNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = "main_tabs"
+        startDestination = "settings"
     ) {
         composable("main_tabs") {
             Scaffold(
@@ -247,6 +249,13 @@ fun HomeNavigation() {
                 onBack = { navController.popBackStack() },
                 onCancel = { navController.popBackStack() }
             )
+        }
+
+        composable("settings") {
+            val context = LocalContext.current
+            val userRepository = remember { UserRepository(context) }
+
+            Setting(userRepository = userRepository)
         }
     }
 }
