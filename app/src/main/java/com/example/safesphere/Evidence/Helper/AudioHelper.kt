@@ -1,8 +1,11 @@
 package com.example.safesphere.Evidence.Helper
 
+import android.content.ContentValues
 import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import com.example.safesphere.Evidence.API.SupabaseManager
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +21,6 @@ class AudioHelper(
 ) {
 
     private var recorder: MediaRecorder? = null
-
     var audioFilePath: String = ""
 
     fun startRecording() {
@@ -98,6 +100,12 @@ class AudioHelper(
 
         val audioFile = File(audioFilePath)
 
+        if (audioFile.exists()) {
+            val fileName = audioFile.name
+            // Save audio locally to phone Music folder
+            saveAudioToPhoneStorage(context, audioFile, fileName)
+        }
+
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
@@ -120,6 +128,50 @@ class AudioHelper(
                     e
                 )
             }
+        }
+    }
+
+    /*
+     * SAVE AUDIO FILE TO PHONE MUSIC / PUBLIC STORAGE
+     */
+    private fun saveAudioToPhoneStorage(
+        context: Context,
+        file: File,
+        fileName: String
+    ) {
+        try {
+            val resolver = context.contentResolver
+            val contentValues = ContentValues().apply {
+                put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
+                put(MediaStore.Audio.Media.MIME_TYPE, "audio/mp4")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/SafeSphere")
+                    put(MediaStore.Audio.Media.IS_PENDING, 1)
+                }
+            }
+
+            val audioUri = resolver.insert(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                contentValues
+            )
+
+            if (audioUri != null) {
+                resolver.openOutputStream(audioUri)?.use { outputStream ->
+                    file.inputStream().use { inputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val completedValues = ContentValues().apply {
+                        put(MediaStore.Audio.Media.IS_PENDING, 0)
+                    }
+                    resolver.update(audioUri, completedValues, null, null)
+                }
+                Log.d("SafeSphere", "AUDIO SAVED TO PHONE MUSIC GALLERY: $audioUri")
+            }
+        } catch (e: Exception) {
+            Log.e("SafeSphere", "SAVE AUDIO TO PHONE FAILED", e)
         }
     }
 }

@@ -101,6 +101,9 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:storage-kt:3.2.6")
     implementation("io.github.jan-tennert.supabase:postgrest-kt:3.2.6")
 
+    // Coil Image Loading
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
     // Ktor
     implementation("io.ktor:ktor-client-okhttp:3.0.3")
 

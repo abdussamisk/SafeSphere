@@ -8,6 +8,7 @@ import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.widget.Toast
 import com.example.safesphere.Evidence.Helper.AudioHelper
 import com.example.safesphere.Evidence.State.EvidenceState
 
@@ -75,44 +76,59 @@ class VoiceRecognizerHelper(
                     }
 
                     val emergencyWords = listOf(
-                        "help",
-                        "help me",
-                        "save me",
-                        "emergency",
-                        "danger",
-                        "stop",
-                        "leave me alone",
-                        "call police",
-                        "kidnap"
+                        // English Emergency Keywords
+                        "help", "help me", "save me", "emergency", "danger", "stop",
+                        "leave me alone", "call police", "police", "kidnap", "thief",
+                        "fire", "attack", "scared", "don't touch me", "get away",
+                        "stalker", "someone is following me", "assault", "scream", "save",
+                        "threat", "hurt", "harass", "harassment", "trapped", "help help",
+                        "somebody help", "save me please",
+                        // Indian Language Emergency Keywords (Hindi, Telugu, Tamil, etc.)
+                        "bachao", "madad", "police ko bulao", "chod do", "kapaathu", "kaapadu", "sahayam"
                     )
 
                     if (emergencyWords.any { spokenText.contains(it) }) {
 
-                        updateStatus("🚨 EMERGENCY DETECTED!")
+                        Handler(Looper.getMainLooper()).post {
+                            Toast.makeText(
+                                context,
+                                "🚨 Emergency Detected! Recording voice for 20s...",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+
+                        updateStatus("🚨 Emergency Detected! Recording voice (20s)...")
+
+                        // 1. Start background voice recording for 20 seconds
                         audioHelper.startRecording()
 
-                        EvidenceState.recordingSecondsLeft = 30
+                        EvidenceState.recordingSecondsLeft = 20
 
                         Thread {
-                            for (i in 30 downTo 1) {
+                            for (i in 20 downTo 1) {
                                 EvidenceState.recordingSecondsLeft = i
                                 Thread.sleep(1000)
                             }
                             EvidenceState.recordingSecondsLeft = 0
                         }.start()
 
-                        updateStatus("🚨 Emergency Detected")
-
+                        // 2. After 20 seconds of recording voice, stop recording and open camera to capture photos
                         Handler(Looper.getMainLooper()).postDelayed({
                             audioHelper.stopRecording()
-                            updateStatus("✅ Audio Evidence Captured")
+                            updateStatus("🎙️ Voice recorded! Capturing photos...")
 
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                updateStatus("📸 Capturing Emergency Photos...")
-                                EvidenceState.showCamera = true
-                            }, 1000)
+                            Handler(Looper.getMainLooper()).post {
+                                Toast.makeText(
+                                    context,
+                                    "🎙️ 20s Voice Recorded! Capturing emergency photos...",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
 
-                        }, 30000)
+                            // 3. Automatically trigger camera preview & 4 emergency photos capture
+                            EvidenceState.showCamera = true
+
+                        }, 20000)
                     } else {
 
                         updateStatus("Heard: $spokenText")

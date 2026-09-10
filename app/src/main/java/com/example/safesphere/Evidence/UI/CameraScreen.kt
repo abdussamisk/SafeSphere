@@ -50,8 +50,30 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
 @Composable
-fun CameraScreen() {
+fun CameraScreen(
+    onClose: () -> Unit = {},
+    isAutoEmergencyMode: Boolean = EvidenceState.showCamera
+) {
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -169,11 +191,11 @@ fun CameraScreen() {
     }
 
     /*
-     * AUTOMATIC MULTIPLE PHOTO CAPTURE
+     * AUTOMATIC MULTIPLE PHOTO CAPTURE (Only run if isAutoEmergencyMode or showCamera is true)
      */
     LaunchedEffect(cameraReady) {
 
-        if (cameraReady && !automaticCaptureStarted) {
+        if ((isAutoEmergencyMode || EvidenceState.showCamera) && cameraReady && !automaticCaptureStarted) {
             Log.d(
                 "SafeSphere",
                 "AUTO CAPTURE STARTED"
@@ -199,7 +221,7 @@ fun CameraScreen() {
                         capturedCount++
 
                         EvidenceState.currentStatus =
-                            "📸 Photo $capturedCount of $totalPhotos captured"
+                            "📸 Photo $capturedCount of $totalPhotos captured & uploading..."
 
                     } else {
 
@@ -215,7 +237,7 @@ fun CameraScreen() {
             }
 
             EvidenceState.currentStatus =
-                "✅ 4 emergency photos saved!"
+                "✅ 4 emergency photos saved to Supabase!"
 
             delay(2000)
 
@@ -232,7 +254,9 @@ fun CameraScreen() {
      * CAMERA UI
      */
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
     ) {
 
         AndroidView(
@@ -242,181 +266,167 @@ fun CameraScreen() {
             modifier = Modifier.fillMaxSize()
         )
 
-        Column(
+        // TOP BAR: CLOSE / BACK BUTTON & STATUS BANNER
+        Row(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(16.dp),
-            horizontalAlignment =
-                Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .align(Alignment.TopStart)
+                .padding(top = 40.dp, start = 16.dp, end = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(
+                onClick = {
+                    onClose()
+                    EvidenceState.showCamera = false
+                },
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.6f))
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White
+                )
+            }
 
-            Text(
-                text = if (capturedCount == 0) {
-                    "🚨 Emergency Camera Active"
-                } else {
-                    "📸 Captured $capturedCount / 4 photos"
-                }
-            )
-
-            if (capturedBitmap != null) {
-
-                Image(
-                    bitmap =
-                        capturedBitmap!!.asImageBitmap(),
-
-                    contentDescription =
-                        "Latest emergency photo",
-
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp)
+            Surface(
+                shape = CircleShape,
+                color = Color.Black.copy(alpha = 0.6f)
+            ) {
+                Text(
+                    text = if (capturedCount == 0) {
+                        "📷 Camera Active • Ready"
+                    } else {
+                        "📸 Captured $capturedCount photo(s) • Saved & Uploaded"
+                    },
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
         }
 
         /*
-         * MANUAL TEST BUTTON
+         * SHUTTER BUTTON (MANUAL CAPTURE & SUPABASE UPLOAD)
          */
-        Button(
-            onClick = {
-
-                captureAndSavePhoto(
-                    context = context,
-                    imageCapture = imageCapture
-                ) { bitmap ->
-
-                    if (bitmap != null) {
-
-                        capturedBitmap = bitmap
-                        capturedCount++
-
-                        EvidenceState.currentStatus =
-                            "📸 Manual photo saved!"
-
-                    } else {
-
-                        EvidenceState.currentStatus =
-                            "❌ Photo capture failed"
-                    }
-                }
-
-            },
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 80.dp)
+                .padding(bottom = 48.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text(
+                text = "Tap to take photo & upload to Supabase",
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 13.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
 
-            Text("Capture Photo")
+            Button(
+                onClick = {
+                    captureAndSavePhoto(
+                        context = context,
+                        imageCapture = imageCapture
+                    ) { bitmap ->
+                        if (bitmap != null) {
+                            capturedBitmap = bitmap
+                            capturedCount++
+                            Toast.makeText(
+                                context,
+                                "📸 Photo #$capturedCount captured & saved to Vault!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "❌ Photo captured & uploading...",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White
+                ),
+                shape = CircleShape,
+                modifier = Modifier.size(72.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PhotoCamera,
+                    contentDescription = "Capture Photo",
+                    tint = Color(0xFF0F172A),
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
     }
 }
 
 
 /*
- * CAPTURE PHOTO AND SAVE TO GALLERY
+ * CAPTURE PHOTO AND SAVE TO GALLERY AND SUPABASE
  */
 private fun captureAndSavePhoto(
     context: Context,
     imageCapture: ImageCapture,
     onCaptured: (Bitmap?) -> Unit
 ) {
+    val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(Date())
+    val fileName = "SafeSphere_$timestamp.jpg"
+    val tempFile = File(context.cacheDir, fileName)
 
-    val timestamp =
-        SimpleDateFormat(
-            "yyyyMMdd_HHmmss_SSS",
-            Locale.US
-        ).format(Date())
-
-    val fileName =
-        "SafeSphere_$timestamp.jpg"
-
-    /*
-     * First capture into a temporary file.
-     */
-    val tempFile = File(
-        context.cacheDir,
-        fileName
-    )
-
-    val outputOptions =
-        ImageCapture.OutputFileOptions
-            .Builder(tempFile)
-            .build()
+    val outputOptions = ImageCapture.OutputFileOptions
+        .Builder(tempFile)
+        .build()
 
     imageCapture.takePicture(
         outputOptions,
-
         ContextCompat.getMainExecutor(context),
-
         object : ImageCapture.OnImageSavedCallback {
 
-            override fun onImageSaved(
-                outputFileResults:
-                ImageCapture.OutputFileResults
-            ) {
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                Log.d("SafeSphere", "PHOTO CAPTURE SUCCESS: ${tempFile.absolutePath}")
 
-                /*
-                 * Save the captured image
-                 * permanently into Gallery.
-                 */
-                Log.d(
-                    "SafeSphere",
-                    "PHOTO CAPTURE SUCCESS"
-                )
+                // 1. Decode bitmap from tempFile first
+                val bitmap = try {
+                    BitmapFactory.decodeFile(tempFile.absolutePath)
+                } catch (e: Exception) {
+                    Log.e("SafeSphere", "BITMAP DECODE ERROR: ${e.message}")
+                    null
+                }
+
+                // 2. Save to Gallery
                 saveToGallery(
                     context = context,
                     file = tempFile,
                     fileName = fileName
                 )
 
-                /*
-                 * Load image so we can show
-                 * the latest photo on screen.
-                 */
-
-                CoroutineScope(Dispatchers.IO).launch {
-
-                    try {
-
-                        val url = SupabaseManager.uploadFile(tempFile)
-
-                        SupabaseManager.saveEvidenceUrl(url)
-
-                        Log.d(
-                            "SafeSphere",
-                            "PHOTO URL SAVED: $url"
-                        )
-
-                    } catch (e: Exception) {
-
-                        Log.e(
-                            "SafeSphere",
-                            "UPLOAD FAILED: ${e.message}"
-                        )
-
-                    } finally {
-
-                        tempFile.delete()
-                    }
-                }
-                val bitmap =
-                    BitmapFactory.decodeFile(
-                        tempFile.absolutePath
-                    )
-
+                // 3. Callback to UI immediately
                 onCaptured(bitmap)
 
-
+                // 4. Asynchronously upload to Supabase, then delete temp file
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val url = SupabaseManager.uploadFile(tempFile)
+                        SupabaseManager.saveEvidenceUrl(url)
+                        Log.d("SafeSphere", "PHOTO URL SAVED TO SUPABASE: $url")
+                    } catch (e: Exception) {
+                        Log.e("SafeSphere", "SUPABASE UPLOAD FAILED: ${e.message}", e)
+                    } finally {
+                        if (tempFile.exists()) {
+                            tempFile.delete()
+                        }
+                    }
+                }
             }
 
-            override fun onError(
-                exception: ImageCaptureException
-            ) {
-                Log.e(
-                    "SafeSphere",
-                    "PHOTO FAILED: ${exception.message}"
-                )
+            override fun onError(exception: ImageCaptureException) {
+                Log.e("SafeSphere", "PHOTO CAPTURE ERROR: ${exception.message}", exception)
                 onCaptured(null)
             }
         }

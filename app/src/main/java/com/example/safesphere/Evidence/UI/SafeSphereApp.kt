@@ -5,21 +5,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.safesphere.Evidence.Helper.AudioHelper
 import com.example.safesphere.Evidence.Service.EmergencyListeningService
@@ -60,8 +49,6 @@ fun SafeSphereApp(
         return
     }
 
-    val status = EvidenceState.currentStatus
-
     LaunchedEffect(EvidenceState.restartListening) {
         if (EvidenceState.restartListening) {
             EvidenceState.restartListening = false
@@ -70,78 +57,36 @@ fun SafeSphereApp(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { paddingValues ->
+    // Displays the Evidence Vault UI matching the user's design design screenshot
+    EvidenceVaultScreen(
+        onStartNewEvidence = {
+            if (!EvidenceState.safetyModeEnabled) {
+                EvidenceState.safetyModeEnabled = true
+                EvidenceState.currentStatus = "🟢 Safety Mode ON"
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-
-            Text(
-                text = "SafeSphere",
-                style = MaterialTheme.typography.headlineLarge
-            )
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                Text(
-                    text = status,
-                    modifier = Modifier.padding(12.dp)
+                val intent = Intent(
+                    context,
+                    EmergencyListeningService::class.java
+                )
+                ContextCompat.startForegroundService(
+                    context,
+                    intent
                 )
 
-                if (EvidenceState.recordingSecondsLeft > 0) {
-                    Text(
-                        text = "🎙️ Recording Evidence: ${EvidenceState.recordingSecondsLeft} sec"
-                    )
-                }
-            }
+                checkMicrophonePermission()
+                onStartListening()
+            } else {
+                EvidenceState.safetyModeEnabled = false
+                EvidenceState.currentStatus = "🔴 Safety Mode OFF"
 
-            Button(
-                onClick = {
-                    if (!EvidenceState.safetyModeEnabled) {
-                        EvidenceState.safetyModeEnabled = true
-                        EvidenceState.currentStatus = "🟢 Safety Mode ON"
+                voiceHelper.stopVoiceRecognition()
 
-                        val intent = Intent(
-                            context,
-                            EmergencyListeningService::class.java
-                        )
-                        ContextCompat.startForegroundService(
-                            context,
-                            intent
-                        )
-
-                        checkMicrophonePermission()
-                        onStartListening()
-                    } else {
-                        EvidenceState.safetyModeEnabled = false
-                        EvidenceState.currentStatus = "🔴 Safety Mode OFF"
-
-                        voiceHelper.stopVoiceRecognition()
-
-                        val intent = Intent(
-                            context,
-                            EmergencyListeningService::class.java
-                        )
-                        context.stopService(intent)
-                    }
-                }
-            ) {
-                Text(
-                    if (EvidenceState.safetyModeEnabled)
-                        "Disable Safety Mode"
-                    else
-                        "Enable Safety Mode"
+                val intent = Intent(
+                    context,
+                    EmergencyListeningService::class.java
                 )
+                context.stopService(intent)
             }
         }
-    }
+    )
 }
