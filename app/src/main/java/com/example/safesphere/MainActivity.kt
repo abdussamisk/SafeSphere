@@ -28,6 +28,7 @@ import com.example.safesphere.Authy.UI.ViewModel.AuthViewModelFactory
 import com.example.safesphere.Authy.UI.Welcome
 import com.example.safesphere.Evidence.UI.SafeSphereApp
 import com.example.safesphere.Home.UI.Home
+import com.example.safesphere.IncidentReport.UI.ReportUI
 import com.example.safesphere.SafetyMap.UI.Map
 import com.example.safesphere.ui.theme.SafeSphereTheme
 
@@ -108,7 +109,7 @@ fun HomeNavigation() {
 
     NavHost(
         navController=navController,
-        startDestination="evidence"
+        startDestination="report"
     ) {
         composable("evidence") {
             SafeSphereApp()
@@ -124,6 +125,13 @@ fun HomeNavigation() {
 
         composable("settings") {
             //Call Settings
+        }
+
+        composable("report") {
+            ReportUI(
+                onBack = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() }
+            )
         }
     }
 }
