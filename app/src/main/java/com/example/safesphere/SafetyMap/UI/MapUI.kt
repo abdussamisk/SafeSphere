@@ -27,6 +27,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -59,9 +61,12 @@ import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.clustering.Clustering
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.example.safesphere.R
+import com.example.safesphere.SafetyMap.ViewModels.SafeMapsViewModel
 import kotlin.collections.maxByOrNull
 
 private object SafeSphereColors {
@@ -79,10 +84,12 @@ private object SafeSphereColors {
 
 @Composable
 fun Map(
-    viewModel: MapsViewModel = viewModel()
+    viewModel: MapsViewModel = viewModel(),
+    safeViewModel: SafeMapsViewModel = viewModel(),
 ) {
     val context = LocalContext.current
     val cameraPositionState = rememberCameraPositionState()
+    var showSafePlaces by remember { mutableStateOf(false) }
 
     var hasLocationPermission by remember {
         mutableStateOf(
@@ -137,106 +144,135 @@ fun Map(
                 compassEnabled = false
             )
         ) {
-            viewModel.clusterItems.forEach { item ->
-                val isHigh = item.impactLevel.uppercase() == "HIGH"
-                val zoneColor = item.zoneColor.toSafeSphereSeverityColor()
-                val fillAlpha = if (isHigh) rememberPulseAlpha(true) else 0.16f
+            if (!showSafePlaces) {
+                viewModel.clusterItems.forEach { item ->
+                    val isHigh = item.impactLevel.uppercase() == "HIGH"
+                    val zoneColor = item.zoneColor.toSafeSphereSeverityColor()
+                    val fillAlpha = if (isHigh) rememberPulseAlpha(true) else 0.16f
 
-                Circle(
-                    center = item.itemPosition,
-                    radius = item.radiusMeters,
-                    fillColor = zoneColor.copy(alpha = fillAlpha),
-                    strokeColor = zoneColor.copy(alpha = if (isHigh) 0.9f else 0.6f),
-                    strokeWidth = if (isHigh) 3f else 1.5f
+                    Circle(
+                        center = item.itemPosition,
+                        radius = item.radiusMeters,
+                        fillColor = zoneColor.copy(alpha = fillAlpha),
+                        strokeColor = zoneColor.copy(alpha = if (isHigh) 0.9f else 0.6f),
+                        strokeWidth = if (isHigh) 3f else 1.5f
+                    )
+                }
+
+                Clustering(
+                    items = viewModel.clusterItems,
+                    clusterContent = { cluster ->
+                        val severityOrder = mapOf("LOW" to 0, "MEDIUM" to 1, "HIGH" to 2)
+                        val dominant = cluster.items
+                            .maxByOrNull { severityOrder[it.impactLevel.uppercase()] ?: 0 }
+                            ?.zoneColor?.toSafeSphereSeverityColor() ?: SafeSphereColors.DangerRed
+
+                        Box(
+                            modifier = Modifier
+                                .size(46.dp)
+                                .shadow(4.dp, CircleShape, clip = false)
+                                .clip(CircleShape)
+                                .background(SafeSphereColors.PrimaryGreen)
+                                .border(2.dp, dominant, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = cluster.size.toString(),
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    },
+                    clusterItemContent = { item ->
+                        val isHigh = item.impactLevel.uppercase() == "HIGH"
+                        val zoneColor = item.zoneColor.toSafeSphereSeverityColor()
+
+                        Box(
+                            modifier = Modifier
+                                .size(if (isHigh) 32.dp else 26.dp)
+                                .shadow(3.dp, CircleShape, clip = false)
+                                .clip(CircleShape)
+                                .background(zoneColor)
+                                .border(2.dp, Color.White, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isHigh) {
+                                Icon(
+                                    painter = painterResource(R.drawable.priority_high_24),
+                                    contentDescription = "High impact report",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White)
+                                )
+                            }
+                        }
+                    }
                 )
             }
 
-            Clustering(
-                items = viewModel.clusterItems,
-                clusterContent = { cluster ->
-                    val severityOrder = mapOf("LOW" to 0, "MEDIUM" to 1, "HIGH" to 2)
-                    val dominant = cluster.items
-                        .maxByOrNull { severityOrder[it.impactLevel.uppercase()] ?: 0 }
-                        ?.zoneColor?.toSafeSphereSeverityColor() ?: SafeSphereColors.DangerRed
-
-                    Box(
-                        modifier = Modifier
-                            .size(46.dp)
-                            .shadow(4.dp, CircleShape, clip = false)
-                            .clip(CircleShape)
-                            .background(SafeSphereColors.PrimaryGreen)
-                            .border(2.dp, dominant, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = cluster.size.toString(),
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                },
-                clusterItemContent = { item ->
-                    val isHigh = item.impactLevel.uppercase() == "HIGH"
-                    val zoneColor = item.zoneColor.toSafeSphereSeverityColor()
-
-                    Box(
-                        modifier = Modifier
-                            .size(if (isHigh) 32.dp else 26.dp)
-                            .shadow(3.dp, CircleShape, clip = false)
-                            .clip(CircleShape)
-                            .background(zoneColor)
-                            .border(2.dp, Color.White, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isHigh) {
-                            Icon(
-                                painter = painterResource(R.drawable.priority_high_24),
-                                contentDescription = "High impact report",
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp)
+            if (showSafePlaces) {
+                safeViewModel.safePlaces.forEach { place ->
+                    Marker(
+                        state = MarkerState(
+                            position = LatLng(
+                                place.latitude,
+                                place.longitude
                             )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White)
-                            )
-                        }
-                    }
+                        ),
+                        title = place.name,
+                        snippet = place.address
+                    )
                 }
+            }
+        }
+
+        if (!showSafePlaces) {
+            SafetyLegendCard(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .padding(top = 12.dp, start = 16.dp, end = 16.dp)
+                    .fillMaxWidth()
             )
         }
 
-        SafetyLegendCard(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(top = 12.dp, start = 16.dp, end = 16.dp)
-                .fillMaxWidth()
-        )
-
         FloatingActionButton(
             onClick = {
-                if (hasLocationPermission && viewModel.lat != 0.0 && viewModel.lon != 0.0) {
-                    cameraPositionState.position = CameraPosition.fromLatLngZoom(
-                        LatLng(viewModel.lat, viewModel.lon),
-                        15f
+                if (showSafePlaces) {
+                    showSafePlaces = false
+                } else {
+                    showSafePlaces = true
+                    safeViewModel.getSafePlaces(
+                        viewModel.lat,
+                        viewModel.lon
                     )
                 }
             },
-            containerColor = SafeSphereColors.PrimaryGreen,
+            containerColor = if (showSafePlaces) SafeSphereColors.DangerRed else SafeSphereColors.TextDark,
             contentColor = Color.White,
             shape = CircleShape,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(24.dp)
         ) {
-            Icon(
-                imageVector = Icons.Filled.MyLocation,
-                contentDescription = "Recenter on my location"
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Icon(
+                    imageVector = if (showSafePlaces) Icons.Default.Close else Icons.Default.LocationOn,
+                    contentDescription = if (showSafePlaces) "Close Safe Places" else "Safe Places Nearby"
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = if (showSafePlaces) "Show Reports" else "Safe Places")
+            }
         }
     }
 }

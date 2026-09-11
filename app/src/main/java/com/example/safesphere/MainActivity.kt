@@ -54,11 +54,15 @@ import com.example.safesphere.IncidentReport.UI.ReportUI
 import com.example.safesphere.SafetyMap.UI.Map
 import com.example.safesphere.Settings.UI.Setting
 import com.example.safesphere.ui.theme.SafeSphereTheme
+import com.google.android.libraries.places.api.Places
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, "AIzaSyBJtVkfZJrKm48eOiJQGJtUF7ocbktWz6M")
+        }
         setContent {
             SafeSphereTheme {
                 App()
