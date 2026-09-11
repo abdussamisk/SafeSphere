@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -21,8 +23,19 @@ class LocationHelper(
 
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location ->
-
-                    continuation.resume(location)
+                    if (location != null) {
+                        continuation.resume(location)
+                    } else {
+                        val cts = CancellationTokenSource()
+                        fusedLocationClient.getCurrentLocation(
+                            Priority.PRIORITY_HIGH_ACCURACY,
+                            cts.token
+                        ).addOnSuccessListener { freshLocation ->
+                            continuation.resume(freshLocation)
+                        }.addOnFailureListener {
+                            continuation.resume(null)
+                        }
+                    }
                 }
                 .addOnFailureListener {
 

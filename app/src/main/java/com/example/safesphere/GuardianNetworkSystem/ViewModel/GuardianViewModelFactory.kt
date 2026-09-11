@@ -3,7 +3,6 @@ package com.example.safesphere.GuardianNetworkSystem.ViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.safesphere.GuardianNetworkSystem.Repository.GuardianRepository
-import com.example.safesphere.GuardianNetworkSystem.Viewmodel.GuardianViewModel
 
 class GuardianViewModelFactory(
     private val repository: GuardianRepository

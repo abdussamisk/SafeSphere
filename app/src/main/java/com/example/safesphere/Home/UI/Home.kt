@@ -47,6 +47,12 @@ import com.example.safesphere.Evidence.Helper.AudioHelper
 import com.example.safesphere.Evidence.Service.EmergencyListeningService
 import com.example.safesphere.Evidence.State.EvidenceState
 import com.example.safesphere.Evidence.Voice.VoiceRecognizerHelper
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.safesphere.SOSLocationSharing.data.API.RetrofitClient as SOSRetrofitClient
+import com.example.safesphere.SOSLocationSharing.data.repository.SOSRepository
+import com.example.safesphere.SOSLocationSharing.ui.viewModel.SOSViewModel
+import com.example.safesphere.SOSLocationSharing.ui.viewModel.SOSViewModelFactory
+import com.example.safesphere.SOSLocationSharing.utils.LocationHelper
 
 @Composable
 fun Home(
@@ -60,6 +66,18 @@ fun Home(
     val usernameState by userRepository.username.collectAsState(initial = null)
     val displayName = remember(usernameState) {
         if (!usernameState.isNullOrBlank()) usernameState else "Mamitha"
+    }
+
+    val locationHelper = remember { LocationHelper(context) }
+    val sosRepository = remember { SOSRepository(SOSRetrofitClient.api) }
+    val sosViewModel: SOSViewModel = viewModel(
+        factory = SOSViewModelFactory(sosRepository)
+    )
+
+    val sosPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        sosViewModel.activateSOS(context, locationHelper)
     }
 
     var isSafetyActive by remember { mutableStateOf(EvidenceState.safetyModeEnabled) }
@@ -413,10 +431,37 @@ fun Home(
                                 Toast
                                     .makeText(
                                         context,
-                                        "🚨 SOS Triggered! Evidence & Location Broadcasting...",
+                                        "🚨 SOS Triggered! Emergency Location & Evidence Broadcasting...",
                                         Toast.LENGTH_LONG
                                     )
                                     .show()
+
+                                val hasLocationPermission = ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.ACCESS_FINE_LOCATION
+                                ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                ) == PackageManager.PERMISSION_GRANTED
+
+                                val hasSmsPermission = ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.SEND_SMS
+                                ) == PackageManager.PERMISSION_GRANTED
+
+                                if (hasLocationPermission && hasSmsPermission) {
+                                    sosViewModel.activateSOS(context, locationHelper)
+                                } else {
+                                    sosPermissionLauncher.launch(
+                                        arrayOf(
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                                            Manifest.permission.SEND_SMS
+                                        )
+                                    )
+                                    sosViewModel.activateSOS(context, locationHelper)
+                                }
+
                                 startEvidenceService()
                                 onNavigateToCamera()
                             }

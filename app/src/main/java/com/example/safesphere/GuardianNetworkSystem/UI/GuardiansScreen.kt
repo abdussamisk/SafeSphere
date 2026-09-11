@@ -1,4 +1,4 @@
-package com.example.guardiannetworksystem.ui.screens
+package com.example.safesphere.GuardianNetworkSystem.UI
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,7 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.safesphere.GuardianNetworkSystem.Data.Guardian
-import com.example.safesphere.GuardianNetworkSystem.Viewmodel.GuardianViewModel
+import com.example.safesphere.GuardianNetworkSystem.ViewModel.GuardianViewModel
 import kotlin.math.abs
 
 @Composable

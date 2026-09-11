@@ -27,7 +27,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
 
-    private const val BASE_URL = "http://10.51.138.87:3000"
+    private const val BASE_URL = "http://192.168.0.12:3000"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()
@@ -87,9 +87,14 @@ class MapsViewModel : ViewModel() {
 }
 
 class SafeMapsViewModel(
-    application: Application
-): AndroidViewModel(application) {
-    val placesClient= Places.createClient(application)
+    private val app: Application
+): AndroidViewModel(app) {
+    private val placesClient by lazy {
+        if (!Places.isInitialized()) {
+            Places.initialize(app.applicationContext, "AIzaSyBJtVkfZJrKm48eOiJQGJtUF7ocbktWz6M")
+        }
+        Places.createClient(app)
+    }
 
     var safePlaces by mutableStateOf<List<SafePlace>>(emptyList())
         private set

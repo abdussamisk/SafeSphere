@@ -27,61 +27,62 @@ class SOSViewModel(
 
                 Log.d("SOS", "SOS ACTIVATED")
 
-                // 1. Get all guardians from backend
-                val guardians =
-                    repository.getGuardians()
+                val guardianPhones = mutableListOf<String>()
+
+                // 1. Get guardians from primary SOSRepository
+                try {
+                    val guardians = repository.getGuardians()
+                    guardians.forEach { guardian ->
+                        if (guardian.phone.isNotBlank()) {
+                            guardianPhones.add(guardian.phone)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("SOS", "Primary SOSRepository getGuardians error: ${e.message}")
+                }
+
+                // 2. Fallback to GuardianNetworkSystem repository if primary empty
+                if (guardianPhones.isEmpty()) {
+                    try {
+                        val secondaryGuardians =
+                            com.example.safesphere.GuardianNetworkSystem.Repository.GuardianRepository().getGuardians()
+                        secondaryGuardians.forEach { guardian ->
+                            if (guardian.phonenumber.isNotBlank()) {
+                                guardianPhones.add(guardian.phonenumber)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("SOS", "Secondary GuardianRepository getGuardians error: ${e.message}")
+                    }
+                }
 
                 Log.d(
                     "SOS",
-                    "Guardians found: ${guardians.size}"
+                    "Guardians found to send SMS: ${guardianPhones.size}"
                 )
 
-                if (guardians.isEmpty()) {
+                // 3. Get current location (or default to 0.0, 0.0)
+                val location = locationHelper.getCurrentLocation()
 
-                    Log.d(
-                        "SOS",
-                        "No guardians found"
-                    )
-
-                    return@launch
-                }
-
-                // 2. Get current location
-                val location =
-                    locationHelper.getCurrentLocation()
-
-                if (location == null) {
-
-                    Log.d(
-                        "SOS",
-                        "Location not available"
-                    )
-
-                    return@launch
-                }
-
-                val latitude =
-                    location.latitude
-
-                val longitude =
-                    location.longitude
+                val latitude = location?.latitude ?: 0.0
+                val longitude = location?.longitude ?: 0.0
 
                 Log.d(
                     "SOS",
                     "Location: $latitude, $longitude"
                 )
 
-                // 3. Send SMS to every guardian
-                guardians.forEach { guardian ->
+                // 4. Send SMS to every distinct guardian phone number
+                guardianPhones.distinct().forEach { phone ->
 
                     Log.d(
                         "SOS",
-                        "Sending SMS to ${guardian.phone}"
+                        "Sending SMS to $phone"
                     )
 
                     sendSOSMessage(
                         context = context,
-                        guardianPhone = guardian.phone,
+                        guardianPhone = phone,
                         latitude = latitude,
                         longitude = longitude
                     )
@@ -89,7 +90,7 @@ class SOSViewModel(
 
                 Log.d(
                     "SOS",
-                    "SOS sent to all guardians"
+                    "SOS message processing finished for ${guardianPhones.distinct().size} guardians"
                 )
 
             } catch (e: Exception) {

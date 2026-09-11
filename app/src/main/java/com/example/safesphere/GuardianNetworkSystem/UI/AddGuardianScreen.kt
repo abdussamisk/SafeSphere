@@ -54,8 +54,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import androidx.core.content.ContextCompat
-import com.example.guardiannetworksystem.utils.sendGuardianOtp
-import com.example.safesphere.GuardianNetworkSystem.Viewmodel.GuardianViewModel
+import com.example.safesphere.GuardianNetworkSystem.Utils.sendGuardianOtp
+import com.example.safesphere.GuardianNetworkSystem.ViewModel.GuardianViewModel
 
 @Composable
 fun AddGuardianScreen(

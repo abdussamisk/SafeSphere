@@ -1,4 +1,4 @@
-package com.example.guardiannetworksystem.ui.screens
+package com.example.safesphere.GuardianNetworkSystem.UI
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -46,7 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-import com.example.safesphere.GuardianNetworkSystem.Viewmodel.GuardianViewModel
+import com.example.safesphere.GuardianNetworkSystem.ViewModel.GuardianViewModel
 
 @Composable
 fun VerifyOtpScreen(

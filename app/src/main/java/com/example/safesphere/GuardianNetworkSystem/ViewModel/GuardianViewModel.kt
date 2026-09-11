@@ -1,4 +1,4 @@
-package com.example.safesphere.GuardianNetworkSystem.Viewmodel
+package com.example.safesphere.GuardianNetworkSystem.ViewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

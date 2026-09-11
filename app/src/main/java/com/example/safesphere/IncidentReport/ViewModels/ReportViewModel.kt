@@ -15,7 +15,7 @@ import kotlin.getValue
 
 object RetrofitInstance {
 
-    private const val BASE_URL = "http://10.51.138.87:3000/"
+    private const val BASE_URL = "http://192.168.0.12:3000/"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()

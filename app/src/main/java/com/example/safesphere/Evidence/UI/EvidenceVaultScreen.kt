@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -154,23 +155,16 @@ fun EvidenceVaultScreen(
             val storageImages = SupabaseManager.fetchStorageImageUrls()
             val storageAudios = SupabaseManager.fetchStorageAudioUrls()
 
-            // Local phone audio file scan
-            val localAudioFiles = mutableListOf<String>()
-            try {
-                val appDir = context.getExternalFilesDir(null)
-                appDir?.listFiles()?.forEach { file ->
-                    if (file.extension.lowercase() in listOf("m4a", "mp3", "wav", "3gp")) {
-                        localAudioFiles.add(file.absolutePath)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.d("SafeSphere", "Local file scan: ${e.message}")
-            }
+            // Strictly include ONLY valid Supabase cloud HTTP/HTTPS URLs
+            val allImages = (fetchedImages + storageImages)
+                .distinct()
+                .filter { it.isNotBlank() && (it.startsWith("http://") || it.startsWith("https://")) }
 
-            val allImages = (fetchedImages + storageImages).distinct().filter { it.isNotBlank() }
-            val allAudios = (fetchedAudios + storageAudios + localAudioFiles).distinct().filter { it.isNotBlank() }
+            val allAudios = (fetchedAudios + storageAudios)
+                .distinct()
+                .filter { it.isNotBlank() && (it.startsWith("http://") || it.startsWith("https://")) }
 
-            Log.d("SafeSphere", "LOADED ${allImages.size} IMAGES AND ${allAudios.size} AUDIOS FROM SUPABASE & PHONE")
+            Log.d("SafeSphere", "SUPABASE VAULT SYNC: ${allImages.size} CLOUD IMAGES AND ${allAudios.size} CLOUD AUDIOS")
 
             val items = mutableListOf<VaultEvidenceItem>()
             var imgCount = 1
@@ -183,21 +177,20 @@ fun EvidenceVaultScreen(
                         title = "Photo Evidence #${String.format("%03d", imgCount)}",
                         type = EvidenceVaultType.PHOTO,
                         url = url,
-                        timestamp = "Photo • Available"
+                        timestamp = "Photo • Cloud Supabase"
                     )
                 )
                 imgCount++
             }
 
             allAudios.forEach { url ->
-                val isLocal = !url.startsWith("http")
                 items.add(
                     VaultEvidenceItem(
                         id = "aud_$audCount",
                         title = "Audio Evidence #${String.format("%03d", audCount)}",
                         type = EvidenceVaultType.AUDIO,
                         url = url,
-                        timestamp = if (isLocal) "Audio • Local Phone File" else "Audio • Cloud Supabase"
+                        timestamp = "Audio • Cloud Supabase"
                     )
                 )
                 audCount++

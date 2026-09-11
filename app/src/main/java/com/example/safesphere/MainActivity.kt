@@ -35,7 +35,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.guardiannetworksystem.ui.screens.GuardiansScreen
 import com.example.safesphere.Authy.TokenRepository.UserRepository
 import com.example.safesphere.Authy.UI.Loading
 import com.example.safesphere.Authy.UI.Login
@@ -46,13 +45,17 @@ import com.example.safesphere.Authy.UI.Welcome
 import com.example.safesphere.Evidence.State.EvidenceState
 import com.example.safesphere.Evidence.UI.CameraScreen
 import com.example.safesphere.Evidence.UI.EvidenceVaultScreen
-import com.example.safesphere.GuardianNetworkSystem.Repository.GuardianRepository
-import com.example.safesphere.GuardianNetworkSystem.ViewModel.GuardianViewModelFactory
-import com.example.safesphere.GuardianNetworkSystem.Viewmodel.GuardianViewModel
 import com.example.safesphere.Home.UI.Home
 import com.example.safesphere.IncidentReport.UI.ReportUI
 import com.example.safesphere.SafetyMap.UI.Map
 import com.example.safesphere.Settings.UI.Setting
+import com.example.safesphere.GuardianNetworkSystem.Repository.GuardianRepository
+import com.example.safesphere.GuardianNetworkSystem.UI.AddGuardianScreen
+import com.example.safesphere.GuardianNetworkSystem.UI.GuardianDetailsScreen
+import com.example.safesphere.GuardianNetworkSystem.UI.GuardiansScreen
+import com.example.safesphere.GuardianNetworkSystem.UI.VerifyOtpScreen
+import com.example.safesphere.GuardianNetworkSystem.ViewModel.GuardianViewModel
+import com.example.safesphere.GuardianNetworkSystem.ViewModel.GuardianViewModelFactory
 import com.example.safesphere.ui.theme.SafeSphereTheme
 import com.google.android.libraries.places.api.Places
 
@@ -135,18 +138,10 @@ fun HomeNavigation() {
     val navController = rememberNavController()
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    // Guardian Repository
-    val guardianRepository = remember {
-        GuardianRepository()
-    }
-
-    // Guardian ViewModel
-    val guardianViewModel: GuardianViewModel =
-        viewModel(
-            factory = GuardianViewModelFactory(
-                repository = guardianRepository
-            )
-        )
+    val guardianRepository = remember { GuardianRepository() }
+    val guardianViewModel: GuardianViewModel = viewModel(
+        factory = GuardianViewModelFactory(guardianRepository)
+    )
 
     if (EvidenceState.showCamera) {
         CameraScreen(
@@ -225,7 +220,7 @@ fun HomeNavigation() {
                             onNavigateToMap = { navController.navigate("map") },
                             onNavigateToCamera = { navController.navigate("camera") },
                             onNavigateToVault = { selectedTab = 1 },
-                            onNavigateToGuardian = {navController.navigate("guardian")}
+                            onNavigateToGuardian = { navController.navigate("guardians") }
                         )
                         1 -> EvidenceVaultScreen(
                             onNavigateBack = { selectedTab = 0 },
@@ -245,7 +240,8 @@ fun HomeNavigation() {
             Home(
                 onNavigateToMap = { navController.navigate("map") },
                 onNavigateToCamera = { navController.navigate("camera") },
-                onNavigateToVault = { selectedTab = 1 }
+                onNavigateToVault = { selectedTab = 1 },
+                onNavigateToGuardian = { navController.navigate("guardians") }
             )
         }
 
@@ -281,49 +277,64 @@ fun HomeNavigation() {
         }
 
         composable("guardians") {
-
-            val context = LocalContext.current
-
-            val guardianViewModel: GuardianViewModel =
-                viewModel(
-                    factory = GuardianViewModelFactory(GuardianRepository())
-                )
-
             GuardiansScreen(
                 viewModel = guardianViewModel,
-
                 onAddGuardian = {
                     guardianViewModel.resetOtpState()
-
                     navController.navigate("addGuardian")
                 },
-
                 onGuardianClick = { guardian ->
-
-                    guardianViewModel.setSelectedGuardian(
-                        guardian
-                    )
-
+                    guardianViewModel.setSelectedGuardian(guardian)
                     navController.navigate("guardianDetails")
                 }
             )
+        }
+
+        composable("addGuardian") {
+            AddGuardianScreen(
+                viewModel = guardianViewModel,
+                onOtpSent = {
+                    navController.navigate("verifyOtp")
+                }
+            )
+        }
+
+        composable("verifyOtp") {
+            VerifyOtpScreen(
+                viewModel = guardianViewModel,
+                onVerified = {
+                    navController.popBackStack("guardians", inclusive = false)
+                }
+            )
+        }
+
+        composable("guardianDetails") {
+            val context = LocalContext.current
+            val selectedGuardian by guardianViewModel.selectedGuardian.collectAsState()
+            selectedGuardian?.let { guardian ->
+                GuardianDetailsScreen(
+                    guardian = guardian,
+                    viewModel = guardianViewModel,
+                    onBack = { navController.popBackStack() },
+                    onVerify = {
+                        guardianViewModel.sendOtpForPendingGuardian(guardian) { otp ->
+                            com.example.safesphere.GuardianNetworkSystem.Utils.sendGuardianOtp(
+                                context = context,
+                                phoneNumber = guardian.phonenumber,
+                                otp = otp
+                            )
+                        }
+                        navController.navigate("verifyOtp")
+                    }
+                )
+            }
         }
     }
 }
 
 @Composable
 fun ProfileScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "👤 SafeSphere User Profile",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF0F172A)
-        )
-    }
+    val context = LocalContext.current
+    val userRepository = remember { UserRepository(context) }
+    Setting(userRepository = userRepository)
 }

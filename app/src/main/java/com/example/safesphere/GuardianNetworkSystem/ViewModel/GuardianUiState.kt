@@ -1,4 +1,4 @@
-package com.example.guardiannetworksystem.ui.viewmodel
+package com.example.safesphere.GuardianNetworkSystem.ViewModel
 
 data class GuardianUiState(
 
