@@ -10,7 +10,7 @@ localProperties.load(
     rootProject.file("local.properties").inputStream()
 )
 
-val mapsApiKey = localProperties.getProperty("MAPS_API_KEY")
+val mapsApiKey = "AIzaSyBJtVkfZJrKm48eOiJQGJtUF7ocbktWz6M"
 
 android {
     namespace = "com.example.safesphere"

@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.guardiannetworksystem.ui.screens.GuardiansScreen
 import com.example.safesphere.Authy.TokenRepository.UserRepository
 import com.example.safesphere.Authy.UI.Loading
 import com.example.safesphere.Authy.UI.Login
@@ -45,6 +46,9 @@ import com.example.safesphere.Authy.UI.Welcome
 import com.example.safesphere.Evidence.State.EvidenceState
 import com.example.safesphere.Evidence.UI.CameraScreen
 import com.example.safesphere.Evidence.UI.EvidenceVaultScreen
+import com.example.safesphere.GuardianNetworkSystem.Repository.GuardianRepository
+import com.example.safesphere.GuardianNetworkSystem.ViewModel.GuardianViewModelFactory
+import com.example.safesphere.GuardianNetworkSystem.Viewmodel.GuardianViewModel
 import com.example.safesphere.Home.UI.Home
 import com.example.safesphere.IncidentReport.UI.ReportUI
 import com.example.safesphere.SafetyMap.UI.Map
@@ -127,6 +131,19 @@ fun HomeNavigation() {
     val navController = rememberNavController()
     var selectedTab by remember { mutableIntStateOf(0) }
 
+    // Guardian Repository
+    val guardianRepository = remember {
+        GuardianRepository()
+    }
+
+    // Guardian ViewModel
+    val guardianViewModel: GuardianViewModel =
+        viewModel(
+            factory = GuardianViewModelFactory(
+                repository = guardianRepository
+            )
+        )
+
     if (EvidenceState.showCamera) {
         CameraScreen(
             onClose = { EvidenceState.showCamera = false },
@@ -203,7 +220,8 @@ fun HomeNavigation() {
                         0 -> Home(
                             onNavigateToMap = { navController.navigate("map") },
                             onNavigateToCamera = { navController.navigate("camera") },
-                            onNavigateToVault = { selectedTab = 1 }
+                            onNavigateToVault = { selectedTab = 1 },
+                            onNavigateToGuardian = {navController.navigate("guardian")}
                         )
                         1 -> EvidenceVaultScreen(
                             onNavigateBack = { selectedTab = 0 },
@@ -256,6 +274,35 @@ fun HomeNavigation() {
             val userRepository = remember { UserRepository(context) }
 
             Setting(userRepository = userRepository)
+        }
+
+        composable("guardians") {
+
+            val context = LocalContext.current
+
+            val guardianViewModel: GuardianViewModel =
+                viewModel(
+                    factory = GuardianViewModelFactory(GuardianRepository())
+                )
+
+            GuardiansScreen(
+                viewModel = guardianViewModel,
+
+                onAddGuardian = {
+                    guardianViewModel.resetOtpState()
+
+                    navController.navigate("addGuardian")
+                },
+
+                onGuardianClick = { guardian ->
+
+                    guardianViewModel.setSelectedGuardian(
+                        guardian
+                    )
+
+                    navController.navigate("guardianDetails")
+                }
+            )
         }
     }
 }

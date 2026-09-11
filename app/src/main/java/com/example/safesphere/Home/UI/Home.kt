@@ -52,7 +52,8 @@ import com.example.safesphere.Evidence.Voice.VoiceRecognizerHelper
 fun Home(
     onNavigateToMap: () -> Unit = {},
     onNavigateToCamera: () -> Unit = {},
-    onNavigateToVault: () -> Unit = {}
+    onNavigateToVault: () -> Unit = {},
+    onNavigateToGuardian: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
@@ -456,7 +457,7 @@ fun Home(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .clickable { onNavigateToVault() },
+                    .clickable { onNavigateToGuardian() },
                 shape = CircleShape,
                 color = Color.White,
                 border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
